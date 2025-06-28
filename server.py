@@ -1,27 +1,30 @@
-from fastapi import FastAPI, Request, UploadFile, File, Form
-from fastapi.responses import HTMLResponse, FileResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, Request, UploadFile, File
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import shutil
 import os
 from classify import classify_log
+from collections import Counter
 
 app = FastAPI()
 
-# Mount static and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+# Ensure resources directory exists
+os.makedirs("resources", exist_ok=True)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for development;
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 OUTPUT_PATH = "resources/output.csv"
 
-@app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "results": None})
-
-@app.post("/upload", response_class=HTMLResponse)
-async def upload(request: Request, file: UploadFile = File(...)):
-
+@app.post("/upload")
+async def upload(file: UploadFile = File(...)):
     # Save uploaded file temporarily
     temp_path = f"resources/temp_{file.filename}"
     with open(temp_path, "wb") as buffer:
@@ -36,12 +39,41 @@ async def upload(request: Request, file: UploadFile = File(...)):
     # Save output
     df.to_csv(OUTPUT_PATH, index=False)
 
+    # Replace NaN with None for JSON serialization
+    df = df.where(pd.notnull(df), None)
+
     # Prepare results for display
     results = df[["source", "log_message", "predicted_label"]].to_dict(orient="records")
+    # Statistics and summary
+    stats = Counter(df["predicted_label"])
+    stats_table = [{"log_class": k, "count": v} for k, v in stats.items()]
+    summary = f"Total logs: {len(df)}. Classes: {', '.join(f'{k} ({v})' for k, v in stats.items())}."
+    # Output preview
+    output_preview = df.head(5)[["source", "log_message", "predicted_label"]].to_dict(orient="records")
 
     # Remove temp file
     os.remove(temp_path)
-    return templates.TemplateResponse("index.html", {"request": request, "results": results})
+
+    return JSONResponse({
+        "results": results,
+        "output_preview": output_preview,
+        "stats_table": stats_table,
+        "summary": summary
+    })
+
+@app.post("/preview")
+async def preview(file: UploadFile = File(...)):
+    temp_path = f"resources/temp_{file.filename}"
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    try:
+        df = pd.read_csv(temp_path)
+        preview_rows = df.head(5).to_dict(orient="records")
+    except Exception as e:
+        os.remove(temp_path)
+        return JSONResponse({"preview": [], "error": str(e)}, status_code=400)
+    os.remove(temp_path)
+    return JSONResponse({"preview": preview_rows})
 
 @app.get("/download")
 async def download():
