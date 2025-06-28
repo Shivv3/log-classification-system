@@ -51,6 +51,12 @@ async def upload(file: UploadFile = File(...)):
     # Output preview
     output_preview = df.head(5)[["source", "log_message", "predicted_label"]].to_dict(orient="records")
 
+    # --- Compute statistics ---
+    total_logs = len(df)
+    label_counts = df["predicted_label"].value_counts().to_dict()
+    chart_labels = list(label_counts.keys())
+    chart_values = list(label_counts.values())
+
     # Remove temp file
     os.remove(temp_path)
 
