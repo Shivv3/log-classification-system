@@ -1,5 +1,5 @@
 source,log_message,predicted_label
-LegacyCRM," ""The 'BulkEmailSender' feature is no longer supported. Use 'EmailCampaignManager' for improved functionality.""",Deprecation
+LegacyCRM," ""The 'BulkEmailSender' feature is no longer supported. Use 'EmailCampaignManager' for improved functionality.""",Deprecation Warning
 BillingSystem," ""User 12345 logged in.""",Security Alert
 AnalyticsEngine," ""File data_6957.csv uploaded successfully by user User265.""",System Notification
 AnalyticsEngine," ""Backup completed successfully.""",System Notification

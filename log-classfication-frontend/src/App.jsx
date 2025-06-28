@@ -201,17 +201,30 @@ function App() {
     URL.revokeObjectURL(url)
   }
 
+  // --- Log class filter state ---
+  const logClasses = [
+    'All','HTTP Status', 'Critical Error', 'Security Alert', 'Error',
+    'System Notification', 'Resource Usage', 'User Action',
+    'Workflow Error', 'Deprecation Warning'
+  ]
+  const [selectedClass, setSelectedClass] = useState('All')
+
+  // Filtered results for output table
+  const filteredResults = selectedClass === 'All'
+    ? results
+    : results.filter(row => row.predicted_label === selectedClass)
+
   return (
     <div className="w-screen min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center py-8">
       <h1 className="text-3xl font-bold text-indigo-700 mb-4 text-center">Log Classification System</h1>
       <p className="text-gray-600 text-center mb-6">Classify logs with AI. Upload your log file and get instant predictions!</p>
       {/* Description Container */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm p-6 mb-8 w-full max-w-2xl text-lg">
+      <div className="bg-indigo-50 border border-indigo-200 rounded-lg shadow-sm p-6 mb-2 w-full max-w-2xl text-lg">
         <div className="mb-3">
           <span className="font-semibold text-indigo-700">How it works:</span>
           <ul className="list-disc list-inside text-gray-700 mt-1 text-base">
-            <li>Upload your log file in CSV format using the "Choose file" button below.</li>
-            <li>Our AI model will analyze each log entry and classify it automatically.</li>
+            <li>Upload your log file using the "Choose file" button below in Dashboard.</li>
+            <li>Our AI model will analyze each log entry and classify it automatically like Categories like: HTTP Status, Critical Error, etc.</li>
             <li>Get instant predictions, statistics, and visualizations for your logs.</li>
           </ul>
         </div>
@@ -221,9 +234,9 @@ function App() {
             <li>The file should be a <span className="font-mono bg-indigo-100 px-1 rounded">.csv</span> with columns: <span className="font-mono bg-indigo-100 px-1 rounded">source</span> (source of log file), <span className="font-mono bg-indigo-100 px-1 rounded">log_message</span> (the log message).</li>
             <li>Example:
               <div className="bg-white border border-gray-200 rounded p-2 mt-1 text-xs font-mono">
-                source,log_message<br />
-                app1,Failed to connect to database<br />
-                app2,User login successful
+                source, log_message<br />
+                Billing System, Failed to connect to database<br />
+                CRM, User login successful
               </div>
             </li>
           </ul>
@@ -233,11 +246,29 @@ function App() {
           <ul className="list-disc list-inside text-gray-700 mt-1 text-base">
             <li>A downloadable <span className="font-mono bg-indigo-100 px-1 rounded">output.csv</span> with predicted labels for each log entry.</li>
             <li>Statistics and summary of log classes.</li>
-            <li>A pie chart visualizing the distribution of predicted classes.</li>
+            <li>Mutliple pie chart and bar graphs visualizing the distribution of predicted classes.</li>
+            <li>Full output table with all classified logs with Interactive filtering buttons</li>
           </ul>
         </div>
       </div>
       {/* End Description Container */}
+
+      {/* Bouncing Down Arrow */}
+      <div className="flex justify-center w-full mb-2">
+        <svg
+          className="animate-bounce"
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#6366f1"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
       {/* Dashboard Heading */}
       <div className="w-full max-w-2xl mb-2 justify-center text-center flex items-center gap-2 mt-6">
         <LayoutDashboard className="inline-block text-indigo-800" size={32} />
@@ -352,10 +383,10 @@ function App() {
                 <div className="bg-indigo-50 border border-indigo-200 rounded px-4 py-2 text-indigo-800 font-semibold text-base">
                   Unique Classes: <span className="font-bold">{classDiversity}</span>
                 </div>
-                <div className="bg-green-50 border border-green-200 rounded px-4 py-2 text-green-800 font-semibold text-base">
+                <div className="bg-pink-50 border border-pink-200 rounded px-4 py-2 text-pink-800 font-semibold text-base">
                   Most Frequent: <span className="font-bold">{mostFrequent.join(", ")}</span> ({maxCount})
                 </div>
-                <div className="bg-pink-50 border border-pink-200 rounded px-4 py-2 text-pink-800 font-semibold text-base">
+                <div className="bg-green-50 border border-green-200 rounded px-4 py-2 text-green-800 font-semibold text-base">
                   Least Frequent: <span className="font-bold">{leastFrequent.join(", ")}</span> ({minCount})
                 </div>
                 <div className="bg-blue-50 border border-blue-200 rounded px-4 py-2 text-blue-800 font-semibold text-base">
@@ -460,9 +491,26 @@ function App() {
               {/* Divider */}
               <hr className="w-full border-t-2 border-indigo-200 my-8" />
               {/* Full Results */}
-              <div className="mb-2 font-bold text-indigo-700 text-2xl text-center w-full">Full Output</div>
+              <div className="mb-6 font-bold text-indigo-700 text-2xl text-center w-full">Full Output</div>
+              {/* Log class filter buttons */}
+              <div className="flex flex-wrap gap-4 justify-center mb-4 text-base">
+                {logClasses.map(cls => (
+                  <button
+                    key={cls}
+                    className={
+                      "px-3 py-2 rounded border transition" +
+                      (selectedClass === cls
+                        ? "bg-indigo-600 text-white border-indigo-700"
+                        : "bg-indigo-50 text-white border-indigo-200 hover:bg-indigo-100")
+                    }
+                    onClick={() => setSelectedClass(cls)}
+                  >
+                    {cls}
+                  </button>
+                ))}
+              </div>
               <div className="overflow-x-auto rounded border border-gray-200 max-h-72 w-full" style={{maxHeight: '18rem', minHeight: '6rem', overflowY: 'auto'}}>
-                <table className="min-w-full bg-white text-gray-900 text-base">
+                <table className="min-w-full bg-white text-gray-900 text-xs">
                   <thead>
                     <tr>
                       <th className="px-2 py-1 border-b text-left font-semibold">Source</th>
@@ -471,7 +519,7 @@ function App() {
                     </tr>
                   </thead>
                   <tbody>
-                    {results.map((row, idx) => (
+                    {filteredResults.map((row, idx) => (
                       <tr key={idx} className="hover:bg-indigo-50">
                         <td className="px-2 py-1 border-b">{row.source}</td>
                         <td className="px-2 py-1 border-b">{row.log_message}</td>
