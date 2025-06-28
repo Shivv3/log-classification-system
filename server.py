@@ -31,7 +31,24 @@ async def upload(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
 
     # Read CSV
-    df = pd.read_csv(temp_path)
+    try:
+        df = pd.read_csv(temp_path)
+    except Exception as e:
+        os.remove(temp_path)
+        return JSONResponse({"error": f"Failed to read CSV: {str(e)}"}, status_code=400)
+
+    # --- Validation: must have exactly two columns: source, log_message ---
+    expected_cols = ["source", "log_message"]
+    if list(df.columns) != expected_cols:
+        os.remove(temp_path)
+        return JSONResponse({"error": "Upload file in correct format: CSV must have columns 'source' and 'log_message' (in this order)."}, status_code=400)
+
+    # Remove rows where either source or log_message is missing or empty
+    df = df.dropna(subset=expected_cols)
+    df = df[(df["source"].astype(str).str.strip() != "") & (df["log_message"].astype(str).str.strip() != "")]
+    if df.empty:
+        os.remove(temp_path)
+        return JSONResponse({"error": "Upload file in correct format: No valid rows found (check for empty or missing values)."}, status_code=400)
 
     # Predict labels
     df["predicted_label"] = df.apply(lambda row: classify_log(row["source"], row["log_message"]), axis=1)
@@ -74,6 +91,13 @@ async def preview(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
     try:
         df = pd.read_csv(temp_path)
+        # --- Validation for preview as well ---
+        expected_cols = ["source", "log_message"]
+        if list(df.columns) != expected_cols:
+            os.remove(temp_path)
+            return JSONResponse({"preview": [], "error": "Upload file in correct format: CSV must have columns 'source' and 'log_message' (in this order)."}, status_code=400)
+        df = df.dropna(subset=expected_cols)
+        df = df[(df["source"].astype(str).str.strip() != "") & (df["log_message"].astype(str).str.strip() != "")]
         preview_rows = df.head(5).to_dict(orient="records")
     except Exception as e:
         os.remove(temp_path)

@@ -1,5 +1,5 @@
 source,log_message
-LegacyCRM," ""The 'ReportGenerator' module will be retired in version 4.0. Please migrate to the 'AdvancedAnalyticsSuite' by Dec 2025"""
+LegacyCRM," ""The 'BulkEmailSender' feature is no longer supported. Use 'EmailCampaignManager' for improved functionality."""
 BillingSystem," ""User 12345 logged in."""
 AnalyticsEngine," ""File data_6957.csv uploaded successfully by user User265."""
 AnalyticsEngine," ""Backup completed successfully."""
