@@ -1,33 +1,48 @@
+from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import pandas as pd
-from fastapi import FastAPI, UploadFile, HTTPException
-from fastapi.responses import FileResponse
-
-from classify import classify
+import shutil
+import os
+from classify import classify_log
 
 app = FastAPI()
 
-@app.post("/classify/")
-async def classify_logs(file: UploadFile):
-    if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="File must be a CSV.")
-    
-    try:
-        # Read the uploaded CSV
-        df = pd.read_csv(file.file)
-        if "source" not in df.columns or "log_message" not in df.columns:
-            raise HTTPException(status_code=400, detail="CSV must contain 'source' and 'log_message' columns.")
+# Mount static and templates
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
-        # Perform classification
-        df["target_label"] = classify(list(zip(df["source"], df["log_message"])))
+OUTPUT_PATH = "resources/output.csv"
 
-        print("Dataframe:",df.to_dict())
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request, "results": None})
 
-        # Save the modified file
-        output_file = "resources/output.csv"
-        df.to_csv(output_file, index=False)
-        print("File saved to output.csv")
-        return FileResponse(output_file, media_type='text/csv')
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        file.file.close()
+@app.post("/upload", response_class=HTMLResponse)
+async def upload(request: Request, file: UploadFile = File(...)):
+
+    # Save uploaded file temporarily
+    temp_path = f"resources/temp_{file.filename}"
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # Read CSV
+    df = pd.read_csv(temp_path)
+
+    # Predict labels
+    df["predicted_label"] = df.apply(lambda row: classify_log(row["source"], row["log_message"]), axis=1)
+
+    # Save output
+    df.to_csv(OUTPUT_PATH, index=False)
+
+    # Prepare results for display
+    results = df[["source", "log_message", "predicted_label"]].to_dict(orient="records")
+
+    # Remove temp file
+    os.remove(temp_path)
+    return templates.TemplateResponse("index.html", {"request": request, "results": results})
+
+@app.get("/download")
+async def download():
+    return FileResponse(OUTPUT_PATH, filename="output.csv", media_type="text/csv")
