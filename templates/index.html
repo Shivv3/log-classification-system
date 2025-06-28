@@ -4,6 +4,33 @@
     <meta charset="UTF-8">
     <title>Log Classification System</title>
     <link rel="stylesheet" href="/static/style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Add this style for horizontal legend alignment */
+        #labelChartLegend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+        }
+        /* Optional: style legend items if needed */
+        #labelChartLegend li {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 1em;
+        }
+        #labelChartLegend span {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 3px;
+            margin-right: 6px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -27,6 +54,32 @@
             <button type="submit">Classify Logs</button>
         </form>
         {% if results %}
+        <!-- --- Log Statistics & Insights Section --- -->
+        <section class="log-stats">
+            <h2>Log Statistics & Insights</h2>
+            <p><b>Total logs processed:</b> {{ total_logs }}</p>
+            <table class="stats-table">
+                <thead>
+                    <tr>
+                        <th>Predicted Label</th>
+                        <th>Count</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for label, count in label_counts.items() %}
+                    <tr>
+                        <td>{{ label }}</td>
+                        <td>{{ count }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div style="max-width: 400px; margin: 24px auto;">
+                <canvas id="labelChart"></canvas>
+            </div>
+        </section>
+        <!-- --- End Log Statistics & Insights Section --- -->
+
         <section class="results">
             <h2>Classification Results</h2>
             <table>
@@ -52,5 +105,53 @@
         {% endif %}
     </div>
     <script src="/static/scripts.js"></script>
+    {% if results %}
+    <script>
+        // Chart.js rendering
+        const ctx = document.getElementById('labelChart').getContext('2d');
+        const chartLabels = {{ chart_labels|tojson }};
+        const chartValues = {{ chart_values|tojson }};
+        const chartColors = [
+            '#00e676', '#ffb300', '#e53935', '#1e88e5', '#8e24aa', '#43a047', '#f4511e'
+        ];
+        const labelChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartValues,
+                    backgroundColor: chartColors,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false // Hide default legend
+                    },
+                    title: { display: true, text: 'Predicted Label Distribution' }
+                }
+            }
+        });
+
+        // Custom legend rendering
+        function renderCustomLegend(chart) {
+            const legendContainer = document.createElement('ul');
+            legendContainer.id = 'labelChartLegend';
+            chart.data.labels.forEach(function(label, i) {
+                const li = document.createElement('li');
+                const colorBox = document.createElement('span');
+                colorBox.style.background = chart.data.datasets[0].backgroundColor[i];
+                li.appendChild(colorBox);
+                li.appendChild(document.createTextNode(label));
+                legendContainer.appendChild(li);
+            });
+            // Insert after canvas
+            const canvas = document.getElementById('labelChart');
+            canvas.parentNode.appendChild(legendContainer);
+        }
+        renderCustomLegend(labelChart);
+    </script>
+    {% endif %}
 </body>
 </html>

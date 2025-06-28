@@ -116,6 +116,38 @@ tr:last-child td {
 .download-btn:hover {
     background: #00b050;
 }
+.log-stats {
+    background: #1a1d21;
+    border-left: 4px solid #ffb300;
+    padding: 16px 24px;
+    margin-bottom: 32px;
+    border-radius: 6px;
+}
+.log-stats h2 {
+    color: #ffb300;
+    margin-top: 0;
+}
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 0 0;
+    background: #23272b;
+    border-radius: 6px;
+    overflow: hidden;
+}
+.stats-table th, .stats-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #333;
+    text-align: left;
+}
+.stats-table th {
+    background: #263238;
+    color: #ffb300;
+    font-weight: 600;
+}
+.stats-table tr:last-child td {
+    border-bottom: none;
+}
 @media (max-width: 700px) {
     .container {
         padding: 16px 4vw 24px 4vw;

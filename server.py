@@ -39,9 +39,25 @@ async def upload(request: Request, file: UploadFile = File(...)):
     # Prepare results for display
     results = df[["source", "log_message", "predicted_label"]].to_dict(orient="records")
 
+    # --- Compute statistics ---
+    total_logs = len(df)
+    label_counts = df["predicted_label"].value_counts().to_dict()
+    chart_labels = list(label_counts.keys())
+    chart_values = list(label_counts.values())
+
     # Remove temp file
     os.remove(temp_path)
-    return templates.TemplateResponse("index.html", {"request": request, "results": results})
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "results": results,
+            "total_logs": total_logs,
+            "label_counts": label_counts,
+            "chart_labels": chart_labels,
+            "chart_values": chart_values,
+        }
+    )
 
 @app.get("/download")
 async def download():
