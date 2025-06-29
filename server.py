@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles  # <-- add this import
 import pandas as pd
 import shutil
 import os
@@ -108,3 +109,6 @@ async def preview(file: UploadFile = File(...)):
 @app.get("/download")
 async def download():
     return FileResponse(OUTPUT_PATH, filename="output.csv", media_type="text/csv")
+
+# Serve static files (frontend build) at root
+app.mount("/", StaticFiles(directory="static", html=True), name="static")

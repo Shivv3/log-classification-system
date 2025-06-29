@@ -320,7 +320,7 @@ function App() {
             </div>
             {/* Centered Classify Button */}
             <button
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-6 rounded-lg shadow transition disabled:opacity-50 mx-auto"
+              className="bg-indigo-50 text-indigo-700 font-semibold py-2 px-6 rounded-full shadow hover:bg-indigo-100 border border-indigo-200 transition mx-auto"
               onClick={handleClassify}
               disabled={!file || loading}
             >
@@ -362,7 +362,7 @@ function App() {
               {/* Centered Download Button */}
               <div className="flex justify-center mb-4 mt-4">
                 <button
-                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow text-m justify-center items-center flex flex-row"
+                  className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-full shadow border border-indigo-200 hover:bg-indigo-100 font-semibold transition flex flex-row items-center justify-center"
                   onClick={handleDownload}
                 >
                   <Download className="inline-block mr-2" size={20} />
@@ -437,7 +437,7 @@ function App() {
                   {/* Download statistics button */}
                   <div className="flex justify-center p-3">
                     <button
-                      className="bg-indigo-500 hover:bg-indigo-600 text-white px-1 py-1 rounded text-xs shadow max-w-80 max-h-10 justify-center flex items-center"
+                      className="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-full shadow border border-indigo-200 hover:bg-indigo-100 font-semibold transition flex items-center"
                       onClick={handleDownloadStats}
                     >
                       <Download className="inline-block mr-2 justify-center text-center" size={20} />
@@ -498,10 +498,7 @@ function App() {
                   <button
                     key={cls}
                     className={
-                      "px-3 py-2 rounded border transition" +
-                      (selectedClass === cls
-                        ? "bg-indigo-600 text-white border-indigo-700"
-                        : "bg-indigo-50 text-white border-indigo-200 hover:bg-indigo-100")
+                      "px-3 py-2 rounded-full border transition bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100 font-semibold"
                     }
                     onClick={() => setSelectedClass(cls)}
                   >
@@ -538,4 +535,5 @@ function App() {
 }
 
 export default App
+
 
