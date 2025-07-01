@@ -199,15 +199,3 @@ CRM,User login successful,User Action
 
 ---
 
-## 🌟 Credits
-
-- Built with ❤️ by [Your Name/Team]
-- Powered by Open Source and Google Gemini
-
----
-
-## 📞 Contact & Support
-
-- For issues, open a GitHub issue or contact [your-email@example.com].
-
----
