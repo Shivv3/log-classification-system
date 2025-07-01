@@ -12,8 +12,6 @@ __pycache__
 .DS_Store
 .vscode
 .idea
-.env
-*.env
 *.egg-info
 *.cache
 *.pytest_cache

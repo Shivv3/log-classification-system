@@ -37,6 +37,7 @@ COPY processor_llm.py .
 COPY requirements.txt .
 COPY resources ./resources
 COPY models ./models
+COPY .env .
 
 # Copy frontend production build only
 COPY --from=frontend /frontend/log-classfication-frontend/dist ./static
